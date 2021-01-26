@@ -40,4 +40,6 @@ There are multiple shell scripts available, here is the description of each of t
 
 `startPlatformServer.sh` - starts one instance of Platform cluster and look for an already running cluster on ServerIP and ServerPort configured in properties. To launch multi-node cluster, run this multiple times on different machines/VMs.
 
+## License Key
+This application uses Enterprise features of Hazelcast, hence you will need enterprise keys to run this application. To obtain a license key, please visit https://hazelcast.com/get-started/ and place it in https://github.com/hazelcast/hazelcast-mainframe-demos/blob/6103a43bb6269e0ea7796400cd6bc7d6a2e38995/fraud-detection-mainframe-wan/src/main/java/com/hazelcast/certification/util/License.java#L5 before building the project.
 
