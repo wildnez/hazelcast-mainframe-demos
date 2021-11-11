@@ -83,7 +83,7 @@ public class AccountDB {
     private static void writeToDatabase(Account a) throws SQLException {
         PreparedStatement insertStatement = conn.prepareStatement(insertTemplate);
         try {
-            log.info("Writing to database for account id "+a.getAccountNumber());
+           // log.info("Writing to database for account id "+a.getAccountNumber());
             insertStatement.setString(ACCT_NUMBER, a.getAccountNumber());
             insertStatement.setDouble(CREDIT_LIMIT, a.getCreditLimit());
             insertStatement.setDouble(BALANCE, a.getBalance());
@@ -94,6 +94,7 @@ public class AccountDB {
             e.printStackTrace();
             System.exit(-1);
         } finally {
+            conn.commit();
             insertStatement.close();
         }
 

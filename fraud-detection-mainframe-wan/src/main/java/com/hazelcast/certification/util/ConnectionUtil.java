@@ -7,7 +7,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-import static com.hazelcast.certification.util.FraudDetectionProperties.*;
+import static com.hazelcast.certification.util.MyProperties.*;
 
 public class ConnectionUtil {
 

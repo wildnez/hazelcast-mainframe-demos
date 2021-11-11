@@ -1,7 +1,7 @@
 package com.hazelcast.certification.domain;
 
 import com.hazelcast.certification.domain.internal.TransactionQueue;
-import com.hazelcast.certification.util.FraudDetectionProperties;
+import com.hazelcast.certification.util.MyProperties;
 
 import java.io.Serializable;
 
@@ -15,7 +15,7 @@ public class Account implements Serializable {
     private AccountStatus status = AccountStatus.CURRENT;
     private String lastReportedLocation = "unknown";
 
-    private TransactionQueue<Transaction> historicalTransactions = new TransactionQueue<Transaction>(FraudDetectionProperties.TRANSACTION_COUNT);
+    private TransactionQueue<Transaction> historicalTransactions = new TransactionQueue<Transaction>(MyProperties.TRANSACTION_COUNT);
 
     public Account(String accountNumber) {
         this.accountNumber = accountNumber;

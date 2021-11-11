@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * </b>. Application can only obtain a credit card transaction from this
  * blocking queue using <code>getNextTransaction()</code>. <br>
  * This app also allows to warm-up the NearCache client by setting a property
- * <code>doWarmup</code> to <code>true</code> in <code>FraudDetection.properties</code>.
+ * <code>doWarmup</code> to <code>true</code> in <code>Process.properties</code>.
  * In such case, <code>warmup()</code> will be invoked before starting the
  * process of fraud detection. <br>
  * To start the process of fraud detection for a given transaction, invoke

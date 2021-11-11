@@ -4,14 +4,16 @@ import com.hazelcast.certification.business.ruleengine.HistoricalDataRuleEngine;
 import com.hazelcast.certification.business.ruleengine.MerchantRuleEngine;
 import com.hazelcast.certification.business.ruleengine.RulesResult;
 import com.hazelcast.certification.domain.Transaction;
-import com.hazelcast.certification.util.FraudDetectionProperties;
+import com.hazelcast.certification.util.MyProperties;
+import com.hazelcast.certification.util.License;
 import com.hazelcast.certification.util.TransactionUtil;
 import com.hazelcast.collection.IQueue;
+import com.hazelcast.config.Config;
 import com.hazelcast.config.NetworkConfig;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.internal.ascii.rest.RestValue;
-import com.hazelcast.jet.Jet;
-import com.hazelcast.jet.JetInstance;
-import com.hazelcast.jet.config.JetConfig;
+import com.hazelcast.jet.JetService;
 import com.hazelcast.jet.config.JobConfig;
 import com.hazelcast.jet.pipeline.*;
 import com.hazelcast.logging.ILogger;
@@ -22,47 +24,49 @@ import java.io.Serializable;
 import java.util.AbstractCollection;
 import java.util.Iterator;
 
-public class FraudDetectionServer implements Serializable {
+public class Server implements Serializable {
 
-    private final static ILogger log = Logger.getLogger(FraudDetectionServer.class);
+    private final static ILogger log = Logger.getLogger(Server.class);
 
-    private static final String TXN_QUEUE_ID = FraudDetectionProperties.TXN_QUEUE_ID;
+    private static final String TXN_QUEUE_ID = MyProperties.TXN_QUEUE_ID;
 
-    private static final String ACCOUNT_MAP = FraudDetectionProperties.ACCOUNT_MAP;
-    private static final String MERCHANT_MAP = FraudDetectionProperties.MERCHANT_MAP;
-    private static final String RULESRESULT_MAP = FraudDetectionProperties.RULESRESULT_MAP;
+    private static final String ACCOUNT_MAP = MyProperties.ACCOUNT_MAP;
+    private static final String MERCHANT_MAP = MyProperties.MERCHANT_MAP;
+    private static final String RULESRESULT_MAP = MyProperties.RULESRESULT_MAP;
 
-    private JetInstance jet;
+    private HazelcastInstance hazelcast;
 
     private static MerchantRuleEngine merchantRuleEngine;
     private static HistoricalDataRuleEngine historicalRuleEngine;
 
     public static void main(String[] args) {
-        new FraudDetectionServer().start();
+        new Server().start();
     }
 
     private void init() {
-        JetConfig jetConfig = new JetConfig();
-        final NetworkConfig networkConfig = new NetworkConfig();
+        Config config = new Config();
+        config.getJetConfig().setEnabled(true);
+
+        config.setLicenseKey(License.KEY);
+        NetworkConfig networkConfig = new NetworkConfig();
 
         networkConfig.getInterfaces().setEnabled(false);
         networkConfig.getJoin().getMulticastConfig().setEnabled(false);
         networkConfig.getJoin().getTcpIpConfig().setEnabled(true);
         networkConfig.getRestApiConfig().setEnabled(true).enableAllGroups();
 
-        networkConfig.getJoin().getTcpIpConfig().addMember(FraudDetectionProperties.SERVER_IP+":"+FraudDetectionProperties.SERVER_PORT);
-        jetConfig.configureHazelcast(c -> {
-            c.setNetworkConfig(networkConfig);
-        });
-        jetConfig.setHazelcastConfig(ImdgConfigInitializer.getImdgConfigurations());
+        networkConfig.getJoin().getTcpIpConfig().addMember(MyProperties.SERVER_IP+":"+MyProperties.SERVER_PORT);
+        config.setNetworkConfig(networkConfig);
 
-        jet = Jet.newJetInstance(jetConfig);
+        MapConfigFactory.updateWithMapConfig(config);
 
-        IMap merchantMap = jet.getHazelcastInstance().getMap(MERCHANT_MAP);
+        hazelcast = Hazelcast.newHazelcastInstance(config);
+
+        IMap merchantMap = hazelcast.getMap(MERCHANT_MAP);
         log.info("Total Merchants loaded in Hazelcast: "+merchantMap.size());
         merchantRuleEngine = new MerchantRuleEngine(merchantMap);
 
-        IMap accountMap = jet.getHazelcastInstance().getMap(ACCOUNT_MAP);
+        IMap accountMap = hazelcast.getMap(ACCOUNT_MAP);
         log.info("Total Accounts loaded in Hazelcast: "+accountMap.size());
         historicalRuleEngine = new HistoricalDataRuleEngine(accountMap);
     }
@@ -73,8 +77,9 @@ public class FraudDetectionServer implements Serializable {
         Pipeline p = buildPipeline();
 
         JobConfig jobConfig = new JobConfig();
-        jobConfig.setName("Fraud Detection Job");
+        jobConfig.setName("Transaction Processing Job");
 
+        JetService jet = hazelcast.getJet();
         jet.newJobIfAbsent(p, jobConfig);
     }
 
@@ -83,14 +88,15 @@ public class FraudDetectionServer implements Serializable {
 
         StreamStage<Transaction> transaction = p.readFrom(buildQueueSource())
                 .withoutTimestamps()
+                .rebalance()
                 .map(restValue -> transformToTransaction(restValue))
-                .setName("Transform incoming RestValue into Transaction");
+                .setName("Transform incoming raw transaction");
 
         StreamStage<Transaction> txnPostMerchantRules = transaction.map(txn -> applyMerchantRules(txn))
-                .setName("Apply Merchant based rules");
+                .setName("Apply Merchant rules");
 
         StreamStage<Transaction> txnPostHistoricalRules = txnPostMerchantRules.map(txn -> applyHistoricalTxnRules(txn))
-                .setName("Apply Historical transactions rules");
+                .setName("Apply Historical rules");
 
         txnPostHistoricalRules.writeTo(Sinks.map(RULESRESULT_MAP, Transaction::getTransactionId, Transaction::getRulesResult));
         txnPostHistoricalRules.writeTo(buildQueueSink());
@@ -102,7 +108,7 @@ public class FraudDetectionServer implements Serializable {
 
     private Sink<? super Transaction> buildQueueSink() {
         return SinkBuilder.sinkBuilder("queueSink",
-                jet -> jet.jetInstance().getHazelcastInstance().<String>getQueue("rules_result_string_queue"))
+                jet -> jet.hazelcastInstance().<String>getQueue("rules_result_string_queue"))
                 .<Transaction>receiveFn( (queue, txn)-> queue.add(transformResultsToString(txn)))
                 .build();
     }
@@ -130,7 +136,7 @@ public class FraudDetectionServer implements Serializable {
     }
 
     private StreamSource<RestValue> buildQueueSource() {
-        StreamSource<RestValue> source = SourceBuilder.<QueueContext<RestValue>>stream(TXN_QUEUE_ID, c -> new QueueContext<>(c.jetInstance().getHazelcastInstance().getQueue(TXN_QUEUE_ID)))
+        StreamSource<RestValue> source = SourceBuilder.<QueueContext<RestValue>>stream(TXN_QUEUE_ID, c -> new QueueContext<>(c.hazelcastInstance().getQueue(TXN_QUEUE_ID)))
                 .<RestValue>fillBufferFn(QueueContext::fillBuffer)
                 .build();
 

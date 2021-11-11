@@ -34,7 +34,7 @@ public class HistoricalTxnsLoaderImpl implements HistoricalTransactionsLoader {
 	}
 	
 	private void loadProperties() {
-		String propFileName = "FraudDetection.properties";
+		String propFileName = "src/Process.properties";
 		InputStream stream = HistoricalTxnsLoaderImpl.class.getClassLoader().getResourceAsStream(propFileName);
 		if (null == stream) {
 			try {

@@ -3,7 +3,7 @@ package com.hazelcast.certification.domainstore;
 import com.hazelcast.certification.database.MerchantDB;
 import com.hazelcast.certification.domain.Merchant;
 import com.hazelcast.certification.util.ConnectionUtil;
-import com.hazelcast.certification.util.FraudDetectionProperties;
+import com.hazelcast.certification.util.MyProperties;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
 import com.hazelcast.map.MapStore;
@@ -69,7 +69,7 @@ public class MerchantStore implements MapStore<String, Merchant> {
 
     @Override
     public synchronized Iterable<String> loadAllKeys() {
-        int size = FraudDetectionProperties.MERCHANT_COUNT;
+        int size = MyProperties.MERCHANT_COUNT;
         List<String> allKeys = new ArrayList<>(size);
         try {
             Statement statement = conn.createStatement();

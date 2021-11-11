@@ -95,6 +95,7 @@ public class MerchantDB {
             e.printStackTrace();
             System.exit(-1);
         } finally {
+            conn.commit();
             insertStatement.close();
         }
     }

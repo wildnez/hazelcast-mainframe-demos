@@ -62,7 +62,7 @@ public class TransactionsGenerator implements Runnable {
     }
  
     private void loadProperties() {
-    	String propFileName = "FraudDetection.properties";
+    	String propFileName = "src/Process.properties";
 		InputStream stream = getClass().getClassLoader().getResourceAsStream(
 				propFileName);
 		if (null == stream) {

@@ -1,4 +1,4 @@
-package com.hazelcast.certification.server;
+package com.hazelcast.certification.util;
 
 import com.hazelcast.core.EntryView;
 import com.hazelcast.enterprise.wan.WanFilterEventType;

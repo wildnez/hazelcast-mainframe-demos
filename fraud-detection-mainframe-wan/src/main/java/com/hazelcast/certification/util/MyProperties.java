@@ -8,9 +8,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-public class FraudDetectionProperties {
+public class MyProperties {
 
-    private static final ILogger log = Logger.getLogger(FraudDetectionProperties.class);
+    private static final ILogger log = Logger.getLogger(MyProperties.class);
 
     public static String SERVER_IP;
     public static String SERVER_PORT;
@@ -43,8 +43,8 @@ public class FraudDetectionProperties {
     }
 
     private static void loadProperties() {
-        String propFileName = "FraudDetection.properties";
-        InputStream stream = FraudDetectionProperties.class.getClassLoader().getResourceAsStream(
+        String propFileName = "Process.properties";
+        InputStream stream = MyProperties.class.getClassLoader().getResourceAsStream(
                 propFileName);
         if (null == stream) {
             try {

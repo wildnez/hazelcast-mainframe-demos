@@ -24,7 +24,7 @@ public class GenerateAll {
             CompletableFuture<Void> merchantFuture = CompletableFuture.runAsync(() -> {
                 int c = 0;
                 try {
-                    c = MerchantDB.generateAndStoreMultiple(FraudDetectionProperties.MERCHANT_COUNT);
+                    c = MerchantDB.generateAndStoreMultiple(MyProperties.MERCHANT_COUNT);
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
@@ -37,7 +37,7 @@ public class GenerateAll {
 
             CompletableFuture<Void> accountFuture = CompletableFuture.runAsync(() -> {
                 try {
-                    accountIDs = AccountDB.storeAndGetAccountIDs(FraudDetectionProperties.ACCOUNT_COUNT);
+                    accountIDs = AccountDB.storeAndGetAccountIDs(MyProperties.ACCOUNT_COUNT);
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
@@ -60,7 +60,7 @@ public class GenerateAll {
             CompletableFuture<Void> transactionFuture = CompletableFuture.runAsync(() -> {
                 int c = 0;
                 try {
-                    c = TransactionDB.storeTransactionsForAccounts(accountIDs, FraudDetectionProperties.TRANSACTION_COUNT);
+                    c = TransactionDB.storeTransactionsForAccounts(accountIDs, MyProperties.TRANSACTION_COUNT);
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }

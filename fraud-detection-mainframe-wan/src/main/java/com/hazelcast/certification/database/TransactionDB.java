@@ -4,7 +4,7 @@ import com.hazelcast.certification.domain.Merchant;
 import com.hazelcast.certification.domain.Transaction;
 import com.hazelcast.certification.domain.internal.TransactionQueue;
 import com.hazelcast.certification.util.ConnectionUtil;
-import com.hazelcast.certification.util.FraudDetectionProperties;
+import com.hazelcast.certification.util.MyProperties;
 import com.hazelcast.certification.util.TransactionUtil;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
@@ -97,7 +97,6 @@ public class TransactionDB {
         AtomicInteger txnCounter = new AtomicInteger();
 
         for(String accountID : accountIDs) {
-            System.out.println("AccountID: "+accountID);
             for(int i=0; i<transactionsPerAccount; i++) {
                 Transaction t = new Transaction(accountID+txnFormat.format(i));
 
@@ -151,9 +150,9 @@ public class TransactionDB {
         return accountIDs;
     }
 
-    private static synchronized void writeToDatabase(Transaction t) {
+    private static synchronized void writeToDatabase(Transaction t) throws SQLException {
+        PreparedStatement insertStatement = conn.prepareStatement(insertTemplate);
         try {
-            PreparedStatement insertStatement = conn.prepareStatement(insertTemplate);
             insertStatement.setString(ID, t.getTransactionId());
             insertStatement.setString(ACCT_NUMBER, t.getAccountNumber());
             insertStatement.setString(MERCHANT_ID, t.getMerchantId());
@@ -168,16 +167,18 @@ public class TransactionDB {
 
             insertStatement.executeUpdate();
 
-            insertStatement.close();
         } catch (SQLException e) {
             e.printStackTrace();
             System.exit(-1);
+        } finally {
+            conn.commit();
+            insertStatement.close();
         }
     }
 
     public static synchronized TransactionQueue<Transaction> readTransactionsForAccountFromDB(String accountID) {
         try {
-            TransactionQueue queue = new TransactionQueue(FraudDetectionProperties.TRANSACTION_COUNT);
+            TransactionQueue queue = new TransactionQueue(MyProperties.TRANSACTION_COUNT);
             PreparedStatement selectStatement = conn.prepareStatement(selectTransactionForAccountTemplate);
             selectStatement.setString(ID, accountID);
             ResultSet rs = selectStatement.executeQuery();

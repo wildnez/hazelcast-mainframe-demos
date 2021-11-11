@@ -4,7 +4,7 @@ import com.hazelcast.certification.database.AccountDB;
 import com.hazelcast.certification.database.TransactionDB;
 import com.hazelcast.certification.domain.Account;
 import com.hazelcast.certification.util.ConnectionUtil;
-import com.hazelcast.certification.util.FraudDetectionProperties;
+import com.hazelcast.certification.util.MyProperties;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
 import com.hazelcast.map.MapStore;
@@ -74,7 +74,7 @@ public class AccountStore implements MapStore<String, Account> {
 
     @Override
     public synchronized Iterable<String> loadAllKeys() {
-        int size = FraudDetectionProperties.ACCOUNT_COUNT;
+        int size = MyProperties.ACCOUNT_COUNT;
         List<String> allKeys = new ArrayList<>(size);
         try {
             Statement statement = conn.createStatement();
