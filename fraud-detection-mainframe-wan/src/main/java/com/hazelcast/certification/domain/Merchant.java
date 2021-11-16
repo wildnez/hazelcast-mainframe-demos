@@ -34,7 +34,6 @@ public class Merchant implements Serializable {
     public String getMerchantID() { return merchantID; }
 
     public void setMerchantID(String id) { merchantID = id; }
-    public Merchant getObject() { return this; }
 
     public String getMerchantName() { return merchantName; }
 
