@@ -85,7 +85,7 @@ public class MerchantDB {
     public static synchronized void writeToDatabase(com.hazelcast.certification.domain.Merchant m) throws SQLException {
         PreparedStatement insertStatement = conn.prepareStatement(insertTemplate);
         try {
-            insertStatement.setString(ID, m.getMerchantId());
+            insertStatement.setString(ID, m.getMerchantID());
             insertStatement.setString(NAME, m.getMerchantName());
             insertStatement.setInt(REPUTATION, m.getReputation());
             insertStatement.setDouble(AVG_TXN_AMOUNT, m.getAvgTxnAmount());

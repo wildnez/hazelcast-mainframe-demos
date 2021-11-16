@@ -97,6 +97,7 @@ public class TransactionDB {
         AtomicInteger txnCounter = new AtomicInteger();
 
         for(String accountID : accountIDs) {
+
             for(int i=0; i<transactionsPerAccount; i++) {
                 Transaction t = new Transaction(accountID+txnFormat.format(i));
 

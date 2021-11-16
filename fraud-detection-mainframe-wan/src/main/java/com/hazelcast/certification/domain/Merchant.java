@@ -7,7 +7,7 @@ public class Merchant implements Serializable {
 
     private String merchantID;
     private String merchantName;
-    private int reputation;   // range 1-10; not in use; may remove or deprecate
+    private int reputation;
 
     private double avgTxnAmount;
 
@@ -23,7 +23,15 @@ public class Merchant implements Serializable {
 
     public Merchant() {}
 
-    public String getMerchantId() { return merchantID; }
+    public Random getRandom() {
+        return random;
+    }
+
+    public void setRandom(Random random) {
+        this.random = random;
+    }
+
+    public String getMerchantID() { return merchantID; }
 
     public void setMerchantID(String id) { merchantID = id; }
     public Merchant getObject() { return this; }
@@ -57,6 +65,4 @@ public class Merchant implements Serializable {
     }
 
     public enum RISK { LOW, MEDIUM, HIGH }
-
-
 }
